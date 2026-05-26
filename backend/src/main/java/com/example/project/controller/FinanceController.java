@@ -4,9 +4,11 @@ import com.example.project.dto.ChatRequest;
 import com.example.project.dto.ChatResponse;
 import com.example.project.repository.entity.Expense;
 import com.example.project.repository.entity.Income;
+import com.example.project.security.CustomUserDetails;
 import com.example.project.service.FinanceService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 import java.math.BigDecimal;
@@ -15,7 +17,7 @@ import java.util.List;
 import java.util.Map;
 
 @RestController
-@RequestMapping
+@RequestMapping("/api")
 @CrossOrigin(origins = "*") // Allow React frontend to connect
 @RequiredArgsConstructor
 public class FinanceController {
@@ -25,59 +27,59 @@ public class FinanceController {
     // --- EXPENSES ENDPOINTS ---
 
     @PostMapping("/expenses")
-    public ResponseEntity<Expense> addExpense(@RequestBody Expense expense) {
-        return ResponseEntity.ok(financeService.saveExpense(expense));
+    public ResponseEntity<Expense> addExpense(@RequestBody Expense expense, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(financeService.saveExpense(expense, userDetails.getUser()));
     }
 
     @GetMapping("/expenses")
-    public ResponseEntity<List<Expense>> getAllExpenses() {
-        return ResponseEntity.ok(financeService.getAllExpenses());
+    public ResponseEntity<List<Expense>> getAllExpenses(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(financeService.getAllExpenses(userDetails.getUser()));
     }
 
     @DeleteMapping("/expenses/{id}")
-    public ResponseEntity<Map<String, Boolean>> deleteExpense(@PathVariable Long id) {
-        financeService.deleteExpense(id);
+    public ResponseEntity<Map<String, Boolean>> deleteExpense(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        financeService.deleteExpense(id, userDetails.getUser());
         Map<String, Boolean> response = new HashMap<>();
         response.put("deleted", Boolean.TRUE);
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/expenses/today")
-    public ResponseEntity<Map<String, BigDecimal>> getTodayExpense() {
+    public ResponseEntity<Map<String, BigDecimal>> getTodayExpense(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Map<String, BigDecimal> response = new HashMap<>();
-        response.put("total", financeService.getTodayExpenseSum());
+        response.put("total", financeService.getTodayExpenseSum(userDetails.getUser()));
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/expenses/week")
-    public ResponseEntity<Map<String, BigDecimal>> getWeeklyExpense() {
+    public ResponseEntity<Map<String, BigDecimal>> getWeeklyExpense(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Map<String, BigDecimal> response = new HashMap<>();
-        response.put("total", financeService.getWeeklyExpenseSum());
+        response.put("total", financeService.getWeeklyExpenseSum(userDetails.getUser()));
         return ResponseEntity.ok(response);
     }
 
     @GetMapping("/expenses/total")
-    public ResponseEntity<Map<String, BigDecimal>> getTotalExpense() {
+    public ResponseEntity<Map<String, BigDecimal>> getTotalExpense(@AuthenticationPrincipal CustomUserDetails userDetails) {
         Map<String, BigDecimal> response = new HashMap<>();
-        response.put("total", financeService.getTotalExpenseSum());
+        response.put("total", financeService.getTotalExpenseSum(userDetails.getUser()));
         return ResponseEntity.ok(response);
     }
 
     // --- INCOME ENDPOINTS ---
 
     @PostMapping("/income")
-    public ResponseEntity<Income> addIncome(@RequestBody Income income) {
-        return ResponseEntity.ok(financeService.saveIncome(income));
+    public ResponseEntity<Income> addIncome(@RequestBody Income income, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(financeService.saveIncome(income, userDetails.getUser()));
     }
 
     @GetMapping("/income")
-    public ResponseEntity<List<Income>> getAllIncomes() {
-        return ResponseEntity.ok(financeService.getAllIncomes());
+    public ResponseEntity<List<Income>> getAllIncomes(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        return ResponseEntity.ok(financeService.getAllIncomes(userDetails.getUser()));
     }
 
     @DeleteMapping("/income/{id}")
-    public ResponseEntity<Map<String, Boolean>> deleteIncome(@PathVariable Long id) {
-        financeService.deleteIncome(id);
+    public ResponseEntity<Map<String, Boolean>> deleteIncome(@PathVariable Long id, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        financeService.deleteIncome(id, userDetails.getUser());
         Map<String, Boolean> response = new HashMap<>();
         response.put("deleted", Boolean.TRUE);
         return ResponseEntity.ok(response);
@@ -86,12 +88,12 @@ public class FinanceController {
     // --- DASHBOARD SUMMARY ENDPOINT ---
 
     @GetMapping("/dashboard/summary")
-    public ResponseEntity<Map<String, Object>> getDashboardSummary() {
-        BigDecimal totalIncome = financeService.getTotalIncomeSum();
-        BigDecimal totalExpense = financeService.getTotalExpenseSum();
+    public ResponseEntity<Map<String, Object>> getDashboardSummary(@AuthenticationPrincipal CustomUserDetails userDetails) {
+        BigDecimal totalIncome = financeService.getTotalIncomeSum(userDetails.getUser());
+        BigDecimal totalExpense = financeService.getTotalExpenseSum(userDetails.getUser());
         BigDecimal totalBalance = totalIncome.subtract(totalExpense);
-        BigDecimal weeklyExpense = financeService.getWeeklyExpenseSum();
-        BigDecimal monthlyExpense = financeService.getMonthlyExpenseSum();
+        BigDecimal weeklyExpense = financeService.getWeeklyExpenseSum(userDetails.getUser());
+        BigDecimal monthlyExpense = financeService.getMonthlyExpenseSum(userDetails.getUser());
 
         Map<String, Object> summary = new HashMap<>();
         summary.put("totalBalance", totalBalance);
@@ -106,8 +108,8 @@ public class FinanceController {
     // --- CHATBOT ENDPOINT ---
 
     @PostMapping("/chat")
-    public ResponseEntity<ChatResponse> processChat(@RequestBody ChatRequest request) {
-        String answer = financeService.processChat(request.getMessage());
+    public ResponseEntity<ChatResponse> processChat(@RequestBody ChatRequest request, @AuthenticationPrincipal CustomUserDetails userDetails) {
+        String answer = financeService.processChat(request.getMessage(), userDetails.getUser());
         return ResponseEntity.ok(new ChatResponse(answer));
     }
 }

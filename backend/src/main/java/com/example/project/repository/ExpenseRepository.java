@@ -9,7 +9,7 @@ import java.util.List;
 
 @Repository
 public interface ExpenseRepository extends JpaRepository<Expense, Long> {
-    List<Expense> findByDate(LocalDate date);
-    List<Expense> findByDateBetween(LocalDate startDate, LocalDate endDate);
-    List<Expense> findAllByOrderByDateDesc();
+    List<Expense> findByUserIdAndDate(Long userId, LocalDate date);
+    List<Expense> findByUserIdAndDateBetween(Long userId, LocalDate startDate, LocalDate endDate);
+    List<Expense> findAllByUserIdOrderByDateDesc(Long userId);
 }

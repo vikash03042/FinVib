@@ -8,5 +8,5 @@ import java.util.List;
 
 @Repository
 public interface IncomeRepository extends JpaRepository<Income, Long> {
-    List<Income> findAllByOrderByDateDesc();
+    List<Income> findAllByUserIdOrderByDateDesc(Long userId);
 }
