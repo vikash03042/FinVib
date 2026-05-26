@@ -37,4 +37,3 @@ build/
 
 # Do NOT ignore Maven wrapper jar
 !.mvn/wrapper/maven-wrapper.jar
-.idea/
